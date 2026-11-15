@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linear Equations Quiz Results</title>
+    <title>Linear Equations Quiz Results (Live)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
             --primary: #1a535c;
@@ -15,181 +16,46 @@
             --muted: #6c757d;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.5; }
+        
+        header { background-color: var(--primary); color: #ffffff; padding: 0 24px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); position: sticky; top: 0; z-index: 100; }
+        .nav-container { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 64px; flex-wrap: wrap; }
+        .brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.3px; }
+        
+        nav { display: flex; gap: 8px; }
+        .nav-link { color: rgba(255, 255, 255, 0.8); text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
+        .nav-link:hover { background-color: rgba(255, 255, 255, 0.12); color: #ffffff; }
+        .nav-link.active { background-color: var(--accent); color: #102a2e; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.5;
-        }
+        main { max-width: 900px; margin: 32px auto; padding: 0 20px 48px; }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.25s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Navigation Bar */
-        header {
-            background-color: var(--primary);
-            color: #ffffff;
-            padding: 0 24px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+        .page-header { margin-bottom: 24px; }
+        .page-header h1 { font-size: 1.75rem; color: var(--primary); }
+        .page-header p { color: var(--muted); font-size: 0.95rem; margin-top: 4px; }
 
-        .nav-container {
-            max-width: 900px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 64px;
-            flex-wrap: wrap;
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: var(--card-bg); padding: 18px 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); border-left: 4px solid var(--accent); }
+        .stat-label { font-size: 0.82rem; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+        .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--text); margin-top: 4px; }
 
-        .brand {
-            font-size: 1.15rem;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-        }
-
-        nav {
-            display: flex;
-            gap: 8px;
-        }
-
-        .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: background-color 0.2s, color 0.2s;
-            cursor: pointer;
-        }
-
-        .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.12);
-            color: #ffffff;
-        }
-
-        .nav-link.active {
-            background-color: var(--accent);
-            color: #102a2e;
-        }
-
-        /* Page Sections */
-        main {
-            max-width: 900px;
-            margin: 32px auto;
-            padding: 0 20px 48px;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-            animation: fadeIn 0.25s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .page-header {
-            margin-bottom: 24px;
-        }
-
-        .page-header h1 {
-            font-size: 1.75rem;
-            color: var(--primary);
-        }
-
-        .page-header p {
-            color: var(--muted);
-            font-size: 0.95rem;
-            margin-top: 4px;
-        }
-
-        /* Summary Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            padding: 18px 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-            border-left: 4px solid var(--accent);
-        }
-
-        .stat-label {
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--muted);
-            font-weight: 600;
-        }
-
-        .stat-value {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-top: 4px;
-        }
-
-        /* Chart Containers */
-        .chart-container {
-            background: var(--card-bg);
-            padding: 24px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-            margin-bottom: 24px;
-        }
-
-        .page-footer-nav {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 12px;
-        }
-
-        .page-footer-nav.left {
-            justify-content: flex-start;
-        }
-
-        .btn-switch {
-            background-color: var(--primary);
-            color: #ffffff;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-switch:hover {
-            opacity: 0.92;
-        }
+        .chart-container { background: var(--card-bg); padding: 24px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07); margin-bottom: 24px; }
+        .page-footer-nav { display: flex; justify-content: flex-end; margin-top: 12px; }
+        .page-footer-nav.left { justify-content: flex-start; }
+        .btn-switch { background-color: var(--primary); color: #ffffff; border: none; padding: 10px 18px; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-switch:hover { opacity: 0.92; }
+        
+        .loading { text-align: center; padding: 20px; font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
 
     <header>
         <div class="nav-container">
-            <div class="brand">Linear Equations Results</div>
+            <div class="brand">Live Quiz Results</div>
             <nav>
                 <a href="#quiz1" class="nav-link active" data-page="quiz1">Page 1: Quiz 1</a>
                 <a href="#quiz2" class="nav-link" data-page="quiz2">Page 2: Quiz 2</a>
@@ -201,34 +67,26 @@
         <!-- ==================== PAGE 1: QUIZ 1 ==================== -->
         <section id="quiz1" class="page active">
             <div class="page-header">
-                <h1>Linear Equations Quiz 1 Results</h1>
-                <p>Pre-lesson word problem steps &amp; basic equation setup (4 responses)</p>
+                <h1>Linear Equations Quiz 1</h1>
+                <p>Live data fetched from Google Sheets</p>
             </div>
 
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-label">Total Responses</div>
-                    <div class="stat-value">4</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Average Score</div>
-                    <div class="stat-value">0.5 / 2</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Full Marks</div>
-                    <div class="stat-value">25% (1)</div>
+                    <div class="stat-value" id="q1-total">Loading...</div>
                 </div>
             </div>
 
-            <div class="chart-container">
+            <div id="q1-loading" class="loading">Fetching live data... Make sure your sheet is Published to the Web.</div>
+
+            <div class="chart-container" style="display:none;" id="q1-c1">
                 <canvas id="scoreChart1"></canvas>
             </div>
-
-            <div class="chart-container">
+            <div class="chart-container" style="display:none;" id="q1-c2">
                 <canvas id="stepsChart"></canvas>
             </div>
-
-            <div class="chart-container">
+            <div class="chart-container" style="display:none;" id="q1-c3">
                 <canvas id="equationChart"></canvas>
             </div>
 
@@ -240,30 +98,23 @@
         <!-- ==================== PAGE 2: QUIZ 2 ==================== -->
         <section id="quiz2" class="page">
             <div class="page-header">
-                <h1>Linear Equations Quiz 2 Results</h1>
-                <p>Word problem error-spotting exercise (3 responses)</p>
+                <h1>Linear Equations Quiz 2</h1>
+                <p>Live data fetched from Google Sheets</p>
             </div>
 
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-label">Total Responses</div>
-                    <div class="stat-value">3</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Average Score</div>
-                    <div class="stat-value">0.33 / 1</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Full Marks</div>
-                    <div class="stat-value">33% (1)</div>
+                    <div class="stat-value" id="q2-total">Loading...</div>
                 </div>
             </div>
 
-            <div class="chart-container">
+            <div id="q2-loading" class="loading">Fetching live data... Make sure your sheet is Published to the Web.</div>
+
+            <div class="chart-container" style="display:none;" id="q2-c1">
                 <canvas id="scoreChart2"></canvas>
             </div>
-
-            <div class="chart-container">
+            <div class="chart-container" style="display:none;" id="q2-c2">
                 <canvas id="mistakesChart"></canvas>
             </div>
 
@@ -274,145 +125,128 @@
     </main>
 
     <script>
-        // Store chart instances for proper resizing on page switch
+        // URLs mapped to the published CSV format of your provided Sheet IDs
+        const SHEET_URLS = {
+            quiz1: "https://docs.google.com/spreadsheets/d/1iYU_jitgTqVU_riCCa-lHdVIeC-OCGRblHWXPymqFWs/pub?output=csv",
+            quiz2: "https://docs.google.com/spreadsheets/d/19GR5kPhQYUl6ZW6-5wNgd9keAHgZvTWR6XSqubpMjFA/pub?output=csv"
+        };
+
         const charts = {};
 
-        // --- Page 1 Charts ---
-        charts.score1 = new Chart(document.getElementById('scoreChart1'), {
-            type: 'bar',
-            data: {
-                labels: ['0 / 2', '1 / 2', '2 / 2'],
-                datasets: [{
-                    label: 'Number of Students',
-                    data: [3, 0, 1],
-                    backgroundColor: ['#ff6b6b', '#ffd166', '#4ecdc4'],
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: { display: true, text: 'Total Score Distribution', font: { size: 16 } },
-                    legend: { display: false }
-                },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        // Helper to initialize charts with empty data
+        function initChart(ctxId, type, title, indexAxis = 'x') {
+            return new Chart(document.getElementById(ctxId), {
+                type: type,
+                data: { labels: [], datasets: [{ label: 'Responses', data: [], backgroundColor: [], borderRadius: 5 }] },
+                options: {
+                    indexAxis: indexAxis,
+                    responsive: true,
+                    plugins: { title: { display: true, text: title, font: { size: 16 } }, legend: { display: false } },
+                    scales: { [indexAxis === 'x' ? 'y' : 'x']: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        // Initialize empty charts
+        charts.score1 = initChart('scoreChart1', 'bar', 'Total Score Distribution');
+        charts.steps = initChart('stepsChart', 'bar', 'Steps Chosen in Pre-lesson Game');
+        charts.equation = initChart('equationChart', 'bar', 'Which equation represents the situation?');
+        charts.score2 = initChart('scoreChart2', 'bar', 'Total Score Distribution');
+        charts.mistakes = initChart('mistakesChart', 'bar', 'Spot the Mistakes: Errors Identified', 'y');
+
+        // Fetch and process Quiz 1 Data
+        Papa.parse(SHEET_URLS.quiz1, {
+            download: true,
+            header: false, // Reading by array index to avoid long text header issues
+            complete: function(results) {
+                const data = results.data.slice(1); // Skip header row
+                let scores = {'0 / 2': 0, '1 / 2': 0, '2 / 2': 0};
+                let steps = {};
+                let equations = {};
+                let validCount = 0;
+
+                data.forEach(row => {
+                    if (row.length < 4 || !row[1]) return; // Skip empty rows
+                    validCount++;
+                    
+                    let s = row[1].trim();
+                    if(scores[s] !== undefined) scores[s]++;
+                    
+                    let st = row[2].trim();
+                    steps[st] = (steps[st] || 0) + 1;
+                    
+                    let eq = row[3].trim();
+                    equations[eq] = (equations[eq] || 0) + 1;
+                });
+
+                document.getElementById('q1-total').innerText = validCount;
+                document.getElementById('q1-loading').style.display = 'none';
+                document.getElementById('q1-c1').style.display = 'block';
+                document.getElementById('q1-c2').style.display = 'block';
+                document.getElementById('q1-c3').style.display = 'block';
+
+                updateChart(charts.score1, Object.keys(scores), Object.values(scores), ['#ff6b6b', '#ffd166', '#4ecdc4']);
+                updateChart(charts.steps, Object.keys(steps), Object.values(steps), '#4ecdc4');
+                updateChart(charts.equation, Object.keys(equations), Object.values(equations), '#1a535c');
             }
         });
 
-        charts.steps = new Chart(document.getElementById('stepsChart'), {
-            type: 'bar',
-            data: {
-                labels: ['1, 2, 3, 4', '3, 2, 1, 4 (Correct)', '3, 1, 4, 2'],
-                datasets: [{
-                    label: 'Responses',
-                    data: [2, 1, 1],
-                    backgroundColor: ['#adb5bd', '#4ecdc4', '#adb5bd'],
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: { display: true, text: 'Steps Chosen in Pre-lesson Game', font: { size: 16 } },
-                    legend: { display: false }
-                },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        // Fetch and process Quiz 2 Data
+        Papa.parse(SHEET_URLS.quiz2, {
+            download: true,
+            header: false,
+            complete: function(results) {
+                const data = results.data.slice(1);
+                let scores = {'0 / 1': 0, '1 / 1': 0};
+                let mistakes = {
+                    'Forgot to let x be the amount given': 0,
+                    'The calculation is wrong': 0,
+                    'Forgot to write the final statement': 0
+                };
+                let validCount = 0;
+
+                data.forEach(row => {
+                    if (row.length < 4 || !row[1]) return;
+                    validCount++;
+
+                    let s = row[1].trim();
+                    if(scores[s] !== undefined) scores[s]++;
+                    
+                    let mStr = (row[3] || "").toLowerCase();
+                    if(mStr.includes("forgot to let x")) mistakes['Forgot to let x be the amount given']++;
+                    if(mStr.includes("calculation is wrong")) mistakes['The calculation is wrong']++;
+                    if(mStr.includes("final statement")) mistakes['Forgot to write the final statement']++;
+                });
+
+                document.getElementById('q2-total').innerText = validCount;
+                document.getElementById('q2-loading').style.display = 'none';
+                document.getElementById('q2-c1').style.display = 'block';
+                document.getElementById('q2-c2').style.display = 'block';
+
+                updateChart(charts.score2, Object.keys(scores), Object.values(scores), ['#ff6b6b', '#4ecdc4']);
+                updateChart(charts.mistakes, Object.keys(mistakes), Object.values(mistakes), '#6b5b95');
             }
         });
 
-        charts.equation = new Chart(document.getElementById('equationChart'), {
-            type: 'bar',
-            data: {
-                labels: ['x - 4 = 10', 'x + 4 = 10 (Correct)', '4x = 10'],
-                datasets: [{
-                    label: 'Responses',
-                    data: [2, 1, 1],
-                    backgroundColor: ['#adb5bd', '#4ecdc4', '#adb5bd'],
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: { display: true, text: 'Which equation represents the situation?', font: { size: 16 } },
-                    legend: { display: false }
-                },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-            }
-        });
-
-        // --- Page 2 Charts ---
-        charts.score2 = new Chart(document.getElementById('scoreChart2'), {
-            type: 'bar',
-            data: {
-                labels: ['0 / 1', '1 / 1'],
-                datasets: [{
-                    label: 'Number of Students',
-                    data: [2, 1],
-                    backgroundColor: ['#ff6b6b', '#4ecdc4'],
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: { display: true, text: 'Total Score Distribution', font: { size: 16 } },
-                    legend: { display: false }
-                },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-            }
-        });
-
-        charts.mistakes = new Chart(document.getElementById('mistakesChart'), {
-            type: 'bar',
-            data: {
-                labels: [
-                    'Forgot to let x be the amount given',
-                    'The calculation is wrong',
-                    'Forgot to write final statement'
-                ],
-                datasets: [{
-                    label: 'Times Identified by Students',
-                    data: [3, 1, 1],
-                    backgroundColor: ['#4ecdc4', '#ff6b6b', '#4ecdc4'],
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                plugins: {
-                    title: { display: true, text: 'Spot the Mistakes: Errors Identified', font: { size: 16 } },
-                    legend: { display: false }
-                },
-                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
-            }
-        });
+        function updateChart(chart, labels, data, colors) {
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = data;
+            chart.data.datasets[0].backgroundColor = colors;
+            chart.update();
+        }
 
         // --- Two-Page Navigation Logic ---
         function showPage(pageId) {
             const validPage = (pageId === 'quiz2') ? 'quiz2' : 'quiz1';
-
-            // Toggle page visibility
-            document.querySelectorAll('.page').forEach(section => {
-                section.classList.toggle('active', section.id === validPage);
-            });
-
-            // Toggle active nav button
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.toggle('active', link.dataset.page === validPage);
-            });
-
-            // Update document title & resize charts cleanly
-            document.title = validPage === 'quiz1'
-                ? 'Page 1: Linear Equations Quiz 1 Results'
-                : 'Page 2: Linear Equations Quiz 2 Results';
-
-            Object.values(charts).forEach(chart => chart.resize());
+            document.querySelectorAll('.page').forEach(section => section.classList.toggle('active', section.id === validPage));
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.toggle('active', link.dataset.page === validPage));
+            document.title = validPage === 'quiz1' ? 'Page 1: Quiz 1 (Live)' : 'Page 2: Quiz 2 (Live)';
+            
+            // Allow charts to resize dynamically when their container is unhidden
+            setTimeout(() => { Object.values(charts).forEach(chart => chart.resize()); }, 50);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Handle navigation clicks
         document.querySelectorAll('[data-page]').forEach(el => {
             el.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -422,17 +256,9 @@
             });
         });
 
-        // Handle browser back/forward buttons and direct hash links
-        window.addEventListener('hashchange', () => {
-            const hash = window.location.hash.replace('#', '');
-            showPage(hash);
-        });
-
-        // Initialize based on URL hash on load
+        window.addEventListener('hashchange', () => { showPage(window.location.hash.replace('#', '')); });
         const initialHash = window.location.hash.replace('#', '');
-        if (initialHash) {
-            showPage(initialHash);
-        }
+        if (initialHash) showPage(initialHash);
     </script>
 </body>
 </html>
