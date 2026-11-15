@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linear Equations Quiz Results (Live)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
             --primary: #1a535c;
@@ -14,52 +13,235 @@
             --card-bg: #ffffff;
             --text: #2b2d42;
             --muted: #6c757d;
+            --danger: #ff6b6b;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.5; }
-        
-        header { background-color: var(--primary); color: #ffffff; padding: 0 24px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); position: sticky; top: 0; z-index: 100; }
-        .nav-container { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 64px; flex-wrap: wrap; }
-        .brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.3px; }
-        
-        nav { display: flex; gap: 8px; }
-        .nav-link { color: rgba(255, 255, 255, 0.8); text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
-        .nav-link:hover { background-color: rgba(255, 255, 255, 0.12); color: #ffffff; }
-        .nav-link.active { background-color: var(--accent); color: #102a2e; }
 
-        main { max-width: 900px; margin: 32px auto; padding: 0 20px 48px; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        /* Top Navigation Bar */
+        header {
+            background-color: var(--primary);
+            color: #ffffff;
+            padding: 0 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 920px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 64px;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 8px 0;
+        }
+
+        .brand {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.92rem;
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+        }
+
+        .nav-link.active {
+            background-color: var(--accent);
+            color: #102a2e;
+        }
+
+        .btn-refresh {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-refresh:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Main Content */
+        main {
+            max-width: 920px;
+            margin: 28px auto;
+            padding: 0 20px 48px;
+        }
+
         .page { display: none; }
-        .page.active { display: block; animation: fadeIn 0.25s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .page.active {
+            display: block;
+            animation: fadeIn 0.22s ease-in-out;
+        }
 
-        .page-header { margin-bottom: 24px; }
-        .page-header h1 { font-size: 1.75rem; color: var(--primary); }
-        .page-header p { color: var(--muted); font-size: 0.95rem; margin-top: 4px; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
-        .stat-card { background: var(--card-bg); padding: 18px 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); border-left: 4px solid var(--accent); }
-        .stat-label { font-size: 0.82rem; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-        .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--text); margin-top: 4px; }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
 
-        .chart-container { background: var(--card-bg); padding: 24px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07); margin-bottom: 24px; }
-        .page-footer-nav { display: flex; justify-content: flex-end; margin-top: 12px; }
-        .page-footer-nav.left { justify-content: flex-start; }
-        .btn-switch { background-color: var(--primary); color: #ffffff; border: none; padding: 10px 18px; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+        .page-header h1 {
+            font-size: 1.7rem;
+            color: var(--primary);
+        }
+
+        .page-header p {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background-color: #e2e8f0;
+            color: #334155;
+        }
+
+        .status-badge.live {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Summary Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 18px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            border-left: 4px solid var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 4px;
+        }
+
+        /* Chart Cards */
+        .chart-container {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+            margin-bottom: 24px;
+        }
+
+        .error-box {
+            display: none;
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: #9b2c2c;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.94rem;
+        }
+
+        .page-footer-nav {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
+
+        .page-footer-nav.left {
+            justify-content: flex-start;
+        }
+
+        .btn-switch {
+            background-color: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
         .btn-switch:hover { opacity: 0.92; }
-        
-        .loading { text-align: center; padding: 20px; font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
 
     <header>
         <div class="nav-container">
-            <div class="brand">Live Quiz Results</div>
-            <nav>
+            <div class="brand">Linear Equations Quiz Results</div>
+            <div class="nav-actions">
                 <a href="#quiz1" class="nav-link active" data-page="quiz1">Page 1: Quiz 1</a>
                 <a href="#quiz2" class="nav-link" data-page="quiz2">Page 2: Quiz 2</a>
-            </nav>
+                <button class="btn-refresh" id="refreshBtn" title="Fetch latest responses">&#8635; Refresh Data</button>
+            </div>
         </div>
     </header>
 
@@ -67,26 +249,41 @@
         <!-- ==================== PAGE 1: QUIZ 1 ==================== -->
         <section id="quiz1" class="page active">
             <div class="page-header">
-                <h1>Linear Equations Quiz 1</h1>
-                <p>Live data fetched from Google Sheets</p>
+                <div>
+                    <h1>Linear Equations Quiz 1</h1>
+                    <p>Pre-lesson word problem steps &amp; basic equation setup</p>
+                </div>
+                <span class="status-badge" id="q1-status">Connecting...</span>
+            </div>
+
+            <div class="error-box" id="q1-error">
+                <strong>Could not load Quiz 1 data.</strong> Please check that the Google Sheet is published to the web (<em>File &rarr; Share &rarr; Publish to web</em>) and not restricted to internal-only domain users.
             </div>
 
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-label">Total Responses</div>
-                    <div class="stat-value" id="q1-total">Loading...</div>
+                    <div class="stat-value" id="q1-total">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Average Score</div>
+                    <div class="stat-value" id="q1-avg">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Full Marks (2 / 2)</div>
+                    <div class="stat-value" id="q1-full">—</div>
                 </div>
             </div>
 
-            <div id="q1-loading" class="loading">Fetching live data... Make sure your sheet is Published to the Web.</div>
-
-            <div class="chart-container" style="display:none;" id="q1-c1">
+            <div class="chart-container">
                 <canvas id="scoreChart1"></canvas>
             </div>
-            <div class="chart-container" style="display:none;" id="q1-c2">
+
+            <div class="chart-container">
                 <canvas id="stepsChart"></canvas>
             </div>
-            <div class="chart-container" style="display:none;" id="q1-c3">
+
+            <div class="chart-container">
                 <canvas id="equationChart"></canvas>
             </div>
 
@@ -98,23 +295,37 @@
         <!-- ==================== PAGE 2: QUIZ 2 ==================== -->
         <section id="quiz2" class="page">
             <div class="page-header">
-                <h1>Linear Equations Quiz 2</h1>
-                <p>Live data fetched from Google Sheets</p>
+                <div>
+                    <h1>Linear Equations Quiz 2</h1>
+                    <p>Word problem error-spotting exercise</p>
+                </div>
+                <span class="status-badge" id="q2-status">Connecting...</span>
+            </div>
+
+            <div class="error-box" id="q2-error">
+                <strong>Could not load Quiz 2 data.</strong> Please check that the Google Sheet is published to the web (<em>File &rarr; Share &rarr; Publish to web</em>) and not restricted to internal-only domain users.
             </div>
 
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-label">Total Responses</div>
-                    <div class="stat-value" id="q2-total">Loading...</div>
+                    <div class="stat-value" id="q2-total">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Average Score</div>
+                    <div class="stat-value" id="q2-avg">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Full Marks (1 / 1)</div>
+                    <div class="stat-value" id="q2-full">—</div>
                 </div>
             </div>
 
-            <div id="q2-loading" class="loading">Fetching live data... Make sure your sheet is Published to the Web.</div>
-
-            <div class="chart-container" style="display:none;" id="q2-c1">
+            <div class="chart-container">
                 <canvas id="scoreChart2"></canvas>
             </div>
-            <div class="chart-container" style="display:none;" id="q2-c2">
+
+            <div class="chart-container">
                 <canvas id="mistakesChart"></canvas>
             </div>
 
@@ -125,125 +336,261 @@
     </main>
 
     <script>
-        // URLs mapped to the published CSV format of your provided Sheet IDs
-        const SHEET_URLS = {
-            quiz1: "https://docs.google.com/spreadsheets/d/1iYU_jitgTqVU_riCCa-lHdVIeC-OCGRblHWXPymqFWs/pub?output=csv",
-            quiz2: "https://docs.google.com/spreadsheets/d/19GR5kPhQYUl6ZW6-5wNgd9keAHgZvTWR6XSqubpMjFA/pub?output=csv"
+        const SHEET_IDS = {
+            quiz1: '1iYU_jitgTqVU_riCCa-lHdVIeC-OCGRblHWXPymqFWs',
+            quiz2: '19GR5kPhQYUl6ZW6-5wNgd9keAHgZvTWR6XSqubpMjFA'
         };
 
         const charts = {};
+        let q1Loaded = false;
+        let q2Loaded = false;
 
-        // Helper to initialize charts with empty data
-        function initChart(ctxId, type, title, indexAxis = 'x') {
-            return new Chart(document.getElementById(ctxId), {
-                type: type,
-                data: { labels: [], datasets: [{ label: 'Responses', data: [], backgroundColor: [], borderRadius: 5 }] },
+        function createBarChart(canvasId, title, indexAxis = 'x') {
+            return new Chart(document.getElementById(canvasId), {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Students',
+                        data: [],
+                        backgroundColor: [],
+                        borderRadius: 5
+                    }]
+                },
                 options: {
                     indexAxis: indexAxis,
                     responsive: true,
-                    plugins: { title: { display: true, text: title, font: { size: 16 } }, legend: { display: false } },
-                    scales: { [indexAxis === 'x' ? 'y' : 'x']: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                    plugins: {
+                        title: { display: true, text: title, font: { size: 16 } },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        [indexAxis === 'x' ? 'y' : 'x']: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
                 }
             });
         }
 
         // Initialize empty charts
-        charts.score1 = initChart('scoreChart1', 'bar', 'Total Score Distribution');
-        charts.steps = initChart('stepsChart', 'bar', 'Steps Chosen in Pre-lesson Game');
-        charts.equation = initChart('equationChart', 'bar', 'Which equation represents the situation?');
-        charts.score2 = initChart('scoreChart2', 'bar', 'Total Score Distribution');
-        charts.mistakes = initChart('mistakesChart', 'bar', 'Spot the Mistakes: Errors Identified', 'y');
+        charts.score1 = createBarChart('scoreChart1', 'Total Score Distribution');
+        charts.steps = createBarChart('stepsChart', 'Steps Chosen in Pre-lesson Game');
+        charts.equation = createBarChart('equationChart', 'Which equation represents the situation?');
+        charts.score2 = createBarChart('scoreChart2', 'Total Score Distribution');
+        charts.mistakes = createBarChart('mistakesChart', 'Spot the Mistakes: Errors Identified', 'y');
 
-        // Fetch and process Quiz 1 Data
-        Papa.parse(SHEET_URLS.quiz1, {
-            download: true,
-            header: false, // Reading by array index to avoid long text header issues
-            complete: function(results) {
-                const data = results.data.slice(1); // Skip header row
-                let scores = {'0 / 2': 0, '1 / 2': 0, '2 / 2': 0};
-                let steps = {};
-                let equations = {};
-                let validCount = 0;
-
-                data.forEach(row => {
-                    if (row.length < 4 || !row[1]) return; // Skip empty rows
-                    validCount++;
-                    
-                    let s = row[1].trim();
-                    if(scores[s] !== undefined) scores[s]++;
-                    
-                    let st = row[2].trim();
-                    steps[st] = (steps[st] || 0) + 1;
-                    
-                    let eq = row[3].trim();
-                    equations[eq] = (equations[eq] || 0) + 1;
-                });
-
-                document.getElementById('q1-total').innerText = validCount;
-                document.getElementById('q1-loading').style.display = 'none';
-                document.getElementById('q1-c1').style.display = 'block';
-                document.getElementById('q1-c2').style.display = 'block';
-                document.getElementById('q1-c3').style.display = 'block';
-
-                updateChart(charts.score1, Object.keys(scores), Object.values(scores), ['#ff6b6b', '#ffd166', '#4ecdc4']);
-                updateChart(charts.steps, Object.keys(steps), Object.values(steps), '#4ecdc4');
-                updateChart(charts.equation, Object.keys(equations), Object.values(equations), '#1a535c');
-            }
-        });
-
-        // Fetch and process Quiz 2 Data
-        Papa.parse(SHEET_URLS.quiz2, {
-            download: true,
-            header: false,
-            complete: function(results) {
-                const data = results.data.slice(1);
-                let scores = {'0 / 1': 0, '1 / 1': 0};
-                let mistakes = {
-                    'Forgot to let x be the amount given': 0,
-                    'The calculation is wrong': 0,
-                    'Forgot to write the final statement': 0
-                };
-                let validCount = 0;
-
-                data.forEach(row => {
-                    if (row.length < 4 || !row[1]) return;
-                    validCount++;
-
-                    let s = row[1].trim();
-                    if(scores[s] !== undefined) scores[s]++;
-                    
-                    let mStr = (row[3] || "").toLowerCase();
-                    if(mStr.includes("forgot to let x")) mistakes['Forgot to let x be the amount given']++;
-                    if(mStr.includes("calculation is wrong")) mistakes['The calculation is wrong']++;
-                    if(mStr.includes("final statement")) mistakes['Forgot to write the final statement']++;
-                });
-
-                document.getElementById('q2-total').innerText = validCount;
-                document.getElementById('q2-loading').style.display = 'none';
-                document.getElementById('q2-c1').style.display = 'block';
-                document.getElementById('q2-c2').style.display = 'block';
-
-                updateChart(charts.score2, Object.keys(scores), Object.values(scores), ['#ff6b6b', '#4ecdc4']);
-                updateChart(charts.mistakes, Object.keys(mistakes), Object.values(mistakes), '#6b5b95');
-            }
-        });
-
-        function updateChart(chart, labels, data, colors) {
+        function updateChart(chart, labels, values, colors) {
             chart.data.labels = labels;
-            chart.data.datasets[0].data = data;
+            chart.data.datasets[0].data = values;
             chart.data.datasets[0].backgroundColor = colors;
             chart.update();
         }
 
-        // --- Two-Page Navigation Logic ---
+        function getCellText(row, index) {
+            if (!row || !row.c || !row.c[index]) return '';
+            const cell = row.c[index];
+            const raw = (cell.f !== undefined && cell.f !== null) ? cell.f : cell.v;
+            return raw !== null && raw !== undefined ? String(raw).trim() : '';
+        }
+
+        function formatTime() {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        // JSONP Callback for Quiz 1
+        window.handleQuiz1 = function(response) {
+            if (!response || response.status !== 'ok' || !response.table) return;
+            q1Loaded = true;
+            document.getElementById('q1-error').style.display = 'none';
+
+            const badge = document.getElementById('q1-status');
+            badge.textContent = `Live • Updated ${formatTime()}`;
+            badge.className = 'status-badge live';
+
+            const rows = response.table.rows || [];
+            const scoreCounts = { '0 / 2': 0, '1 / 2': 0, '2 / 2': 0 };
+            const stepCounts = { '3, 2, 1, 4': 0 };
+            const eqCounts = { 'x + 4 = 10': 0 };
+
+            let totalResponses = 0;
+            let totalPoints = 0;
+
+            rows.forEach(row => {
+                const timestamp = getCellText(row, 0);
+                const rawScore = getCellText(row, 1);
+                if (!rawScore || timestamp.toLowerCase() === 'timestamp') return;
+
+                totalResponses++;
+
+                // Normalize score (e.g., "2 / 2" or "2/2")
+                const compactScore = rawScore.replace(/\s+/g, '');
+                if (compactScore === '0/2') scoreCounts['0 / 2']++;
+                else if (compactScore === '1/2') { scoreCounts['1 / 2']++; totalPoints += 1; }
+                else if (compactScore === '2/2') { scoreCounts['2 / 2']++; totalPoints += 2; }
+
+                const stepChoice = getCellText(row, 2);
+                if (stepChoice) {
+                    stepCounts[stepChoice] = (stepCounts[stepChoice] || 0) + 1;
+                }
+
+                const eqChoice = getCellText(row, 3);
+                if (eqChoice) {
+                    eqCounts[eqChoice] = (eqCounts[eqChoice] || 0) + 1;
+                }
+            });
+
+            // Update stat cards
+            document.getElementById('q1-total').textContent = totalResponses;
+            document.getElementById('q1-avg').textContent = totalResponses > 0
+                ? `${(totalPoints / totalResponses).toFixed(2)} / 2`
+                : '0 / 2';
+            const fullPct = totalResponses > 0 ? Math.round((scoreCounts['2 / 2'] / totalResponses) * 100) : 0;
+            document.getElementById('q1-full').textContent = `${fullPct}% (${scoreCounts['2 / 2']})`;
+
+            // Update Score Chart
+            updateChart(
+                charts.score1,
+                Object.keys(scoreCounts),
+                Object.values(scoreCounts),
+                ['#ff6b6b', '#ffd166', '#4ecdc4']
+            );
+
+            // Update Steps Chart (highlight correct answer)
+            const stepKeys = Object.keys(stepCounts);
+            const stepLabels = stepKeys.map(k => k === '3, 2, 1, 4' ? '3, 2, 1, 4 (Correct)' : k);
+            const stepColors = stepKeys.map(k => k === '3, 2, 1, 4' ? '#4ecdc4' : '#94a3b8');
+            updateChart(charts.steps, stepLabels, Object.values(stepCounts), stepColors);
+
+            // Update Equation Chart (highlight correct answer)
+            const eqKeys = Object.keys(eqCounts);
+            const eqLabels = eqKeys.map(k => k.replace(/\s+/g, '') === 'x+4=10' ? `${k} (Correct)` : k);
+            const eqColors = eqKeys.map(k => k.replace(/\s+/g, '') === 'x+4=10' ? '#4ecdc4' : '#94a3b8');
+            updateChart(charts.equation, eqLabels, Object.values(eqCounts), eqColors);
+        };
+
+        // JSONP Callback for Quiz 2
+        window.handleQuiz2 = function(response) {
+            if (!response || response.status !== 'ok' || !response.table) return;
+            q2Loaded = true;
+            document.getElementById('q2-error').style.display = 'none';
+
+            const badge = document.getElementById('q2-status');
+            badge.textContent = `Live • Updated ${formatTime()}`;
+            badge.className = 'status-badge live';
+
+            const rows = response.table.rows || [];
+            const scoreCounts = { '0 / 1': 0, '1 / 1': 0 };
+            const mistakeCounts = {
+                'Forgot to let x be the amount given': 0,
+                'Forgot to write the final statement': 0,
+                'The calculation is wrong': 0
+            };
+
+            let totalResponses = 0;
+            let totalPoints = 0;
+
+            rows.forEach(row => {
+                const timestamp = getCellText(row, 0);
+                const rawScore = getCellText(row, 1);
+                if (!rawScore || timestamp.toLowerCase() === 'timestamp') return;
+
+                totalResponses++;
+
+                const compactScore = rawScore.replace(/\s+/g, '');
+                if (compactScore === '0/1') scoreCounts['0 / 1']++;
+                else if (compactScore === '1/1') { scoreCounts['1 / 1']++; totalPoints += 1; }
+
+                const mistakesText = getCellText(row, 3).toLowerCase();
+                if (mistakesText.includes('forgot to let x')) {
+                    mistakeCounts['Forgot to let x be the amount given']++;
+                }
+                if (mistakesText.includes('final statement')) {
+                    mistakeCounts['Forgot to write the final statement']++;
+                }
+                if (mistakesText.includes('calculation is wrong')) {
+                    mistakeCounts['The calculation is wrong']++;
+                }
+            });
+
+            // Update stat cards
+            document.getElementById('q2-total').textContent = totalResponses;
+            document.getElementById('q2-avg').textContent = totalResponses > 0
+                ? `${(totalPoints / totalResponses).toFixed(2)} / 1`
+                : '0 / 1';
+            const fullPct = totalResponses > 0 ? Math.round((scoreCounts['1 / 1'] / totalResponses) * 100) : 0;
+            document.getElementById('q2-full').textContent = `${fullPct}% (${scoreCounts['1 / 1']})`;
+
+            // Update Score Chart
+            updateChart(
+                charts.score2,
+                Object.keys(scoreCounts),
+                Object.values(scoreCounts),
+                ['#ff6b6b', '#4ecdc4']
+            );
+
+            // Update Mistakes Chart
+            updateChart(
+                charts.mistakes,
+                Object.keys(mistakeCounts),
+                Object.values(mistakeCounts),
+                ['#4ecdc4', '#4ecdc4', '#ff6b6b']
+            );
+        };
+
+        // Inject JSONP script tags to fetch live Google Sheet data
+        function loadSheetData(quizKey, sheetId, callbackName) {
+            const oldScript = document.getElementById(`script-${quizKey}`);
+            if (oldScript) oldScript.remove();
+
+            const script = document.createElement('script');
+            script.id = `script-${quizKey}`;
+            script.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json;responseHandler:${callbackName}&_ts=${Date.now()}`;
+            script.onerror = () => showLoadError(quizKey);
+            document.body.appendChild(script);
+        }
+
+        function showLoadError(quizKey) {
+            const prefix = quizKey === 'quiz1' ? 'q1' : 'q2';
+            const badge = document.getElementById(`${prefix}-status`);
+            badge.textContent = 'Connection Error';
+            badge.className = 'status-badge error';
+            document.getElementById(`${prefix}-error`).style.display = 'block';
+        }
+
+        function fetchAllSheets() {
+            q1Loaded = false;
+            q2Loaded = false;
+            document.getElementById('q1-status').textContent = 'Updating...';
+            document.getElementById('q2-status').textContent = 'Updating...';
+
+            loadSheetData('quiz1', SHEET_IDS.quiz1, 'handleQuiz1');
+            loadSheetData('quiz2', SHEET_IDS.quiz2, 'handleQuiz2');
+
+            // Timeout fallback in case Google blocks access
+            setTimeout(() => {
+                if (!q1Loaded) showLoadError('quiz1');
+                if (!q2Loaded) showLoadError('quiz2');
+            }, 7000);
+        }
+
+        // Navigation between Page 1 and Page 2
         function showPage(pageId) {
             const validPage = (pageId === 'quiz2') ? 'quiz2' : 'quiz1';
-            document.querySelectorAll('.page').forEach(section => section.classList.toggle('active', section.id === validPage));
-            document.querySelectorAll('.nav-link').forEach(link => link.classList.toggle('active', link.dataset.page === validPage));
-            document.title = validPage === 'quiz1' ? 'Page 1: Quiz 1 (Live)' : 'Page 2: Quiz 2 (Live)';
-            
-            // Allow charts to resize dynamically when their container is unhidden
-            setTimeout(() => { Object.values(charts).forEach(chart => chart.resize()); }, 50);
+            document.querySelectorAll('.page').forEach(section => {
+                section.classList.toggle('active', section.id === validPage);
+            });
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.toggle('active', link.dataset.page === validPage);
+            });
+            document.title = validPage === 'quiz1'
+                ? 'Page 1: Linear Equations Quiz 1 (Live)'
+                : 'Page 2: Linear Equations Quiz 2 (Live)';
+
+            setTimeout(() => {
+                Object.values(charts).forEach(chart => chart.resize());
+            }, 30);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -256,9 +603,16 @@
             });
         });
 
-        window.addEventListener('hashchange', () => { showPage(window.location.hash.replace('#', '')); });
+        document.getElementById('refreshBtn').addEventListener('click', fetchAllSheets);
+
+        window.addEventListener('hashchange', () => {
+            showPage(window.location.hash.replace('#', ''));
+        });
+
+        // Initial load
         const initialHash = window.location.hash.replace('#', '');
         if (initialHash) showPage(initialHash);
+        fetchAllSheets();
     </script>
 </body>
 </html>
